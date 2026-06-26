@@ -1,0 +1,20 @@
+{
+  "name": "mikrotik-admin",
+  "version": "1.0.0",
+  "description": "تطبيق إدارة MikroTik Hotspot - نسخة أندرويد",
+  "scripts": {
+    "build": "echo 'Static HTML - no build needed'",
+    "cap:add": "npx cap add android",
+    "cap:sync": "npx cap sync android",
+    "cap:open": "npx cap open android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.0.0",
+    "@capacitor/core": "^6.0.0",
+    "@capacitor/splash-screen": "^6.0.0"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^6.0.0"
+  }
+}
+
