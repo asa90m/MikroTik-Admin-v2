@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MikroTik-Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F2F6F6;
+    --white:#FFFFFF;
+    --pink:#E7F6F5;
+    --red:#0E7C86;
+    --red-dark:#0B5E66;
+    --orange:#F2A93B;
+    --green:#16C088;
+    --green-dark:#0EA571;
+    --blue:#2F6FE0;
+    --purple:#7B5CC9;
+    --text:#1E2625;
+    --muted:#7C8B8A;
+    --border:#E3EDEC;
+    --radius:16px;
+    --sans:'Tajawal', sans-serif;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{background:var(--bg); color:var(--text); font-family:var(--sans);}
+  body{min-height:100vh; display:flex; justify-content:center;}
+  #app{width:100%; max-width:480px; min-height:100vh; background:var(--bg); position:relative; border-inline:1px solid var(--border);}
+
+  /* ---------- login screen ---------- */
+  .login-screen{position:fixed; inset:0; max-width:480px; margin:0 auto; background:var(--white); display:flex; align-items:center; justify-content:center; padding:24px; z-index:200;}
+  .login-card{width:100%; max-width:380px;}
+  .login-logo-box{border:2px dashed var(--red); border-radius:10px; padding:14px 10px; text-align:center; margin:0 auto 14px; width:fit-content;}
+  .login-logo-box .l1{color:var(--red); font-weight:800; font-size:22px;}
+  .login-logo-box .l2{color:var(--red); font-weight:700; font-size:15px; margin-top:-2px;}
+  .login-title{font-size:18px; font-weight:800; text-align:center;}
+  .login-sub{font-size:12px; text-align:center; margin:4px 0 20px; color:var(--muted);}
+  .login-error{color:var(--red); font-size:12px; text-align:center; margin-top:10px; line-height:1.6; min-height:14px;}
+  .login-divider{display:flex; align-items:center; gap:10px; margin:16px 0; color:var(--muted); font-size:11.5px;}
+  .login-divider::before, .login-divider::after{content:""; flex:1; height:1px; background:var(--border);}
+
+  /* ---------- top bar ---------- */
+  .topbar{background:var(--white); border-bottom:1px solid var(--border); padding:12px 14px; position:sticky; top:0; z-index:30; display:flex; align-items:center; justify-content:space-between;}
+  .icon-btn{background:none; border:none; color:var(--red); font-size:22px; line-height:1; cursor:pointer; padding:4px;}
+  .badge-pill{background:#FCEEDC; border:1px solid #F3D9A8; color:var(--orange); font-weight:700; font-size:11.5px; padding:6px 12px; border-radius:999px; display:flex; align-items:center; gap:5px;}
+  .topbar-logo .l1{color:var(--red); font-weight:800; font-size:15px; line-height:1;}
+  .topbar-logo .l2{color:var(--red); font-weight:700; font-size:10px; line-height:1;}
+
+  /* ---------- page title ---------- */
+  .page-title-row{display:flex; align-items:center; justify-content:flex-end; gap:10px; padding:16px 16px 12px;}
+  .page-title-row .bar{width:4px; height:22px; background:var(--red); border-radius:2px;}
+  .page-title-row .t{font-size:19px; font-weight:800;}
+  .page-title-row.with-back{justify-content:space-between;}
+
+  /* ---------- status bar ---------- */
+  .status-bar{background:var(--green); color:#fff; text-align:center; font-weight:700; padding:12px; font-size:14px;}
+
+  /* ---------- generic layout ---------- */
+  .screen{display:none; padding-bottom:40px;}
+  .screen.active{display:block;}
+  .content{padding:0 16px;}
+  .section-heading{text-align:center; font-size:16px; font-weight:800; margin:18px 0 14px;}
+  .card-white{background:var(--white); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:14px;}
+  .card-pink{background:var(--pink); border-radius:var(--radius); padding:16px; margin-bottom:14px;}
+  .pink-title{display:flex; align-items:center; justify-content:flex-end; gap:8px; font-weight:800; font-size:14.5px; margin-bottom:14px;}
+  .pink-title .bar{width:3px; height:16px; background:var(--red); border-radius:2px;}
+
+  /* radio row */
+  .radio-row{background:var(--white); border:1px solid var(--border); border-radius:999px; padding:12px 16px; display:flex; justify-content:space-around; margin-bottom:14px; flex-wrap:wrap; gap:8px;}
+  .radio-opt{display:flex; align-items:center; gap:7px; font-size:13.5px; font-weight:600;}
+  .radio-opt input{accent-color:var(--red); width:18px; height:18px;}
+
+  /* gauges */
+  .gauge-row{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:14px;}
+  .gauge-cell{text-align:center;}
+  .gauge{width:84px; height:84px; border-radius:50%; margin:0 auto; display:flex; align-items:center; justify-content:center; position:relative;}
+  .gauge::before{content:""; position:absolute; inset:7px; background:var(--bg); border-radius:50%;}
+  .gauge .val{position:relative; z-index:1; font-weight:800; font-size:15px;}
+  .gauge-lbl{font-size:12px; color:var(--muted); margin-top:6px; font-weight:600;}
+
+  /* stat cards */
+  .stat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .stat-card{background:var(--white); border:1px solid var(--border); border-radius:14px; padding:16px 10px; text-align:center;}
+  .stat-card .ic{font-size:22px; margin-bottom:6px;}
+  .stat-card .num{font-size:24px; font-weight:800;}
+  .stat-card .lbl{font-size:12px; color:var(--muted); margin-top:3px;}
+
+  /* quick actions */
+  .qa-row{display:flex; gap:10px;}
+  .btn{display:flex; align-items:center; justify-content:center; gap:7px; border:none; border-radius:12px; padding:13px; font-family:var(--sans); font-weight:700; font-size:13.5px; cursor:pointer; flex:1; color:#fff;}
+  .btn-red-dark{background:var(--red-dark);}
+  .btn-orange{background:var(--orange);}
+  .btn-red{background:var(--red);}
+  .btn-green{background:var(--green-dark);}
+  .btn-black{background:#1c1c1e;}
+  .btn-outline{background:var(--white); color:var(--text); border:1px solid var(--border);}
+  .btn:active{transform:scale(.97);}
+  .btn:disabled{opacity:.6;}
+
+  /* network stats / server info rows */
+  .info-row{display:flex; align-items:center; justify-content:space-between; padding:10px 0; border-bottom:1px solid rgba(0,0,0,.06);}
+  .info-row:last-child{border-bottom:none;}
+  .info-row .lbl{color:var(--muted); font-size:13px;}
+  .info-row .val{font-weight:700; font-size:14px; display:flex; align-items:center; gap:8px;}
+  .ic-chip{width:26px; height:26px; border-radius:8px; background:var(--red); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px;}
+
+  /* expired cards */
+  .expired-row{background:var(--pink); border-radius:14px; padding:14px; display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .expired-row .t{font-weight:700; font-size:13.5px;}
+  .expired-row .count{color:var(--red); font-weight:700; font-size:13px; margin-top:4px;}
+  .del-btn{background:var(--red); color:#fff; border:none; border-radius:10px; padding:9px 14px; font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; cursor:pointer;}
+
+  /* tabs (english style w/ red underline) */
+  .tabs-en{display:flex; border-bottom:1px solid var(--border); margin-bottom:0;}
+  .tabs-en .tab{flex:1; text-align:center; padding:14px 0; font-weight:700; color:var(--muted); cursor:pointer; border-bottom:3px solid transparent;}
+  .tabs-en .tab.active{color:var(--red); border-color:var(--red);}
+
+  /* form fields */
+  label.field{display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600;}
+  input[type=text], input[type=number], input[type=password], input[type=tel], select{
+    width:100%; background:var(--white); border:1px solid var(--border); color:var(--text);
+    border-radius:12px; padding:13px 14px; font-family:var(--sans); font-size:13.5px; outline:none; text-align:center;
+  }
+  input:focus, select:focus{border-color:var(--red);}
+  .field-group{margin-bottom:12px;}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .hint{font-size:11px; color:var(--muted); margin:-4px 0 12px; line-height:1.6;}
+
+  /* search row */
+  .search-row{display:flex; gap:10px; margin-bottom:12px;}
+  .search-row input{flex:1;}
+  .square-btn{width:48px; height:48px; border-radius:12px; border:none; display:flex; align-items:center; justify-content:center; font-size:18px; cursor:pointer; flex-shrink:0;}
+
+  /* summary bar */
+  .summary-bar{background:var(--pink); border-radius:12px; padding:12px; text-align:center; font-weight:700; font-size:13px; color:var(--red); margin-bottom:14px;}
+
+  /* result card (printed card detail) */
+  .result-card{border-radius:14px; padding:14px; margin-bottom:10px; position:relative;}
+  .result-card.printed{background:var(--red); color:#fff;}
+  .result-card.unprinted{background:var(--white); border:1px solid var(--border); color:var(--text);}
+  .result-card .tag-top{position:absolute; top:10px; left:12px; font-size:10.5px; font-weight:700; opacity:.85;}
+  .result-card .r{display:flex; justify-content:space-between; font-size:13px; padding:3px 0;}
+
+  /* empty state */
+  .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
+  .empty-state .ic{font-size:46px; opacity:.35; margin-bottom:14px;}
+
+  /* device / log cards */
+  .device-card{background:var(--pink); border-radius:14px; padding:14px; margin-bottom:10px; display:flex; align-items:center; justify-content:space-between;}
+  .device-card .name{font-weight:700; font-size:14px;}
+  .device-card .ip{color:var(--red); font-size:13px; margin-top:3px;}
+  .device-card .mac{color:var(--muted); font-size:11px; margin-top:2px;}
+  .device-ic{width:42px; height:42px; border-radius:50%; background:#D9F2E7; color:var(--green-dark); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0;}
+
+  .log-card{background:var(--pink); border-radius:14px; padding:12px 14px; margin-bottom:10px; position:relative; border-right:4px solid var(--green-dark);}
+  .log-card .top{display:flex; justify-content:space-between; font-size:11px; margin-bottom:6px;}
+  .log-card .topic{color:var(--green-dark); font-weight:700;}
+  .log-card .time{color:var(--muted);}
+  .log-card .msg{font-size:13px; line-height:1.6;}
+
+  /* data table */
+  .data-table{width:100%; border-collapse:collapse; font-size:12px;}
+  .data-table th{background:#1c1c1e; color:#fff; padding:10px 6px; font-weight:700;}
+  .data-table td{padding:10px 6px; text-align:center; border-bottom:1px solid var(--border);}
+
+  /* table-style header row (active cards) */
+  .table-head{background:#1c1c1e; color:#fff; display:flex; padding:12px; border-radius:10px 10px 0 0; font-weight:700; font-size:13px;}
+  .table-head span{flex:1; text-align:center;}
+
+  /* two-stat box (valid/expired) */
+  .vs-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;}
+  .vs-box{border-radius:14px; padding:18px; text-align:center;}
+  .vs-box.bad{background:var(--pink);} .vs-box.bad .num{color:var(--red);}
+  .vs-box.good{background:#DFF7ED;} .vs-box.good .num{color:var(--green-dark);}
+  .vs-box .num{font-size:26px; font-weight:800;}
+  .vs-box .lbl{font-size:12.5px; color:var(--muted); margin-top:6px;}
+
+  /* ---------- side menu ---------- */
+  .menu-backdrop{position:fixed; inset:0; max-width:480px; margin:0 auto; background:rgba(0,0,0,.45); z-index:90; display:none;}
+  .menu-backdrop.open{display:block;}
+  .side-menu{position:absolute; top:0; right:0; bottom:0; width:88%; max-width:380px; background:var(--white); transform:translateX(100%); transition:transform .25s ease; display:flex; flex-direction:column;}
+  .menu-backdrop.open .side-menu{transform:translateX(0);}
+  .menu-header{background:linear-gradient(160deg, var(--red), var(--red-dark)); padding:22px 18px 24px; position:relative;}
+  .menu-close{position:absolute; top:16px; left:16px; color:#fff; font-size:22px; background:none; border:none; cursor:pointer;}
+  .menu-logo-box{border:2px dashed #fff; border-radius:10px; padding:12px 10px; width:fit-content; margin:18px auto 14px; text-align:center;}
+  .menu-logo-box .l1{color:#fff; font-weight:800; font-size:22px;} .menu-logo-box .l2{color:#fff; font-weight:700; font-size:14px; margin-top:-2px;}
+  .menu-app-title{color:#fff; font-weight:800; font-size:20px; text-align:center;}
+  .menu-app-sub{color:rgba(255,255,255,.85); font-size:12px; text-align:center; margin-top:4px;}
+  .menu-list{flex:1; overflow-y:auto; background:#15151a; padding:8px 0;}
+  .menu-item{display:flex; align-items:center; justify-content:space-between; padding:16px 18px; color:#fff; font-size:14.5px; font-weight:600; cursor:pointer;}
+  .menu-item.active{background:#3a1414;}
+  .menu-item .left{display:flex; align-items:center; gap:12px;}
+  .menu-divider{height:1px; background:rgba(255,255,255,.08); margin:6px 0;}
+  .menu-sub{background:#0f0f12;}
+  .menu-sub .menu-item{padding-right:36px; font-size:13.5px; font-weight:500;}
+
+  #toast{position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(10px); background:#1c1c1e; color:#fff; padding:11px 18px; border-radius:999px; font-size:12.5px; font-weight:600; opacity:0; transition:.25s; z-index:300; max-width:90%; text-align:center;}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  ::-webkit-scrollbar{width:0; height:0;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- LICENSE SCREEN (trial expired) -->
+  <div class="login-screen" id="licenseScreen" style="display:none;">
+    <div class="login-card">
+      <div class="login-logo-box"><div class="l1">MikroTik</div><div class="l2">Admin</div></div>
+      <div class="login-title">انتهت الفترة التجريبية</div>
+      <div class="login-sub">أدخل كود التفعيل لمتابعة استخدام التطبيق</div>
+      <div class="field-group"><label class="field">كود التفعيل</label><input type="text" id="activationCode" placeholder="MTA-XXXX-XXXX"></div>
+      <button class="btn btn-red" id="activateBtn" style="width:100%;" onclick="doActivate()">تفعيل</button>
+      <div class="login-error" id="activateError"></div>
+      <div style="text-align:center; font-size:10.5px; color:var(--muted); margin-top:22px; line-height:1.7;">
+        إعداد وتصميم: المهندس عبدالرحمن الشرعبي<br>772364042
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="login-screen" id="loginScreen" style="display:none;">
+    <div class="login-card">
+      <div class="login-logo-box"><div class="l1">MikroTik</div><div class="l2">Admin</div></div>
+      <div class="login-title">الاتصال بالراوتر</div>
+      <div class="login-sub" id="trialSub">أدخل بيانات الميكروتيك تماماً كما في Winbox</div>
+
+      <div class="field-group"><label class="field">العنوان (Address)</label><input type="text" id="loginHost" placeholder="192.168.88.1"></div>
+      <div class="field-group"><label class="field">اسم المستخدم (Login)</label><input type="text" id="loginUser" placeholder="admin"></div>
+      <div class="field-group"><label class="field">كلمة المرور (Password)</label><input type="password" id="loginPass" placeholder="••••••••"></div>
+
+      <div style="text-align:left; margin-bottom:10px;">
+        <span style="font-size:11.5px; color:var(--red); cursor:pointer; font-weight:700;" onclick="toggleAdvancedLogin()">⚙️ خيارات متقدمة (منفذ مخصص)</span>
+      </div>
+      <div id="advancedLogin" style="display:none;">
+        <div class="grid-2">
+          <div class="field-group"><label class="field">المنفذ (Port)</label><input type="number" id="loginPort" placeholder="8728 (تلقائي)"></div>
+          <div class="field-group"><label class="field">نوع الاتصال</label>
+            <select id="loginSsl"><option value="0">API عادي (8728)</option><option value="1">API SSL (8729)</option></select>
+          </div>
+        </div>
+        <div class="hint">اتركه فارغاً ليستخدم التطبيق المنفذ الافتراضي تلقائياً (8728). غيّره فقط إن كنت قد بدّلت منفذ API في IP ← Services بنفسك.</div>
+      </div>
+
+      <button class="btn btn-red" id="loginBtn" style="width:100%;" onclick="doConnect()">اتصال</button>
+      <div class="login-error" id="loginError"></div>
+
+      <div class="login-divider"><span>أو</span></div>
+      <button class="btn btn-outline" style="width:100%;" onclick="enterDemoMode()">معاينة بدون راوتر (بيانات تجريبية)</button>
+
+      <div style="text-align:center; font-size:10.5px; color:var(--muted); margin-top:22px; line-height:1.7;">
+        إعداد وتصميم: المهندس عبدالرحمن الشرعبي<br>772364042
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="mainUI" style="display:none;">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="icon-btn" onclick="openMenu()">☰</button>
+      <div class="topbar-logo"><div class="l1">MikroTik-Admin</div></div>
+      <span class="badge-pill" id="subBadge">⏱ تجريبي</span>
+      <button class="icon-btn" onclick="manualRefresh()">↻</button>
+    </div>
+
+    <!-- SIDE MENU -->
+    <div class="menu-backdrop" id="menuBackdrop" onclick="closeMenuBg(event)">
+      <div class="side-menu" onclick="event.stopPropagation()">
+        <div class="menu-header">
+          <button class="menu-close" onclick="closeMenu()">✕</button>
+          <div class="menu-logo-box"><div class="l1">MikroTik</div><div class="l2">Admin</div></div>
+          <div class="menu-app-title">MikroTik-Admin</div>
+          <div class="menu-app-sub">إدارة شاملة لراوتر الميكروتك</div>
+          <div style="color:rgba(255,255,255,.7); font-size:10px; text-align:center; margin-top:10px;">إعداد وتصميم: المهندس عبدالرحمن الشرعبي — 772364042</div>
+        </div>
+        <div class="menu-list" id="menuList">
+          <div class="menu-item active" data-screen="dashboard" onclick="navTo('dashboard',this)"><span class="left">🏠 الرئيسية</span></div>
+          <div class="menu-item" data-screen="cardsList" onclick="navTo('cardsList',this)"><span class="left">📋 قائمة الكروت</span></div>
+          <div class="menu-item" data-screen="topup" onclick="navTo('topup',this)"><span class="left">💳 كروت شحن</span></div>
+          <div class="menu-item" data-screen="activeCards" onclick="navTo('activeCards',this)"><span class="left">⚡ الكروت النشطة</span></div>
+          <div class="menu-divider"></div>
+          <div class="menu-item" data-screen="settings" onclick="navTo('settings',this)"><span class="left">🔧 أدوات النظام</span></div>
+          <div class="menu-item" onclick="toggleSub('subGen')"><span class="left">🪪 انشاء كروت</span><span>﹀</span></div>
+          <div class="menu-sub" id="subGen">
+            <div class="menu-item" data-screen="genHotspot" onclick="navTo('genHotspot',this)"><span class="left">📶 كروت هوتسبوت</span></div>
+            <div class="menu-item" data-screen="genUM" onclick="navTo('genUM',this)"><span class="left">🆔 كروت يوزرمانجر</span></div>
+            <div class="menu-item" data-screen="genBroadband" onclick="navTo('genBroadband',this)"><span class="left">🔐 كروت برودباند</span></div>
+          </div>
+          <div class="menu-item" data-screen="networkTools" onclick="navTo('networkTools',this)"><span class="left">📡 أدوات الشبكة</span></div>
+          <div class="menu-item" data-screen="mikrotikCards" onclick="navTo('mikrotikCards',this)"><span class="left">💳 كروت الميكروتك</span></div>
+          <div class="menu-item" data-screen="log" onclick="navTo('log',this)"><span class="left">🕘 سجل الأحداث</span></div>
+          <div class="menu-item" data-screen="dhcp" onclick="navTo('dhcp',this)"><span class="left">🌐 توزيع الأييبيهات</span></div>
+          <div class="menu-item" data-screen="printSettings" onclick="navTo('printSettings',this)"><span class="left">🖨️ قسم الطباعة</span></div>
+          <div class="menu-item" data-screen="reports" onclick="navTo('reports',this)"><span class="left">📊 قسم التقارير</span></div>
+          <div class="menu-item" data-screen="settings" onclick="navTo('settings',this)"><span class="left">⚙️ قسم الاعدادات</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="page-title-row"><span class="t">الرئيسية</span><span class="bar"></span></div>
+      <div class="status-bar" id="statusBar">الحالة : متصل ومستقر</div>
+      <div class="content">
+        <div class="section-heading">إحصائيات سيرفر الميكروتك</div>
+        <div class="radio-row">
+          <label class="radio-opt"><input type="radio" name="mode" checked onclick="setMode('hotspot')"> هوتسبوت</label>
+          <label class="radio-opt"><input type="radio" name="mode" onclick="setMode('usermanager')"> يوزرمانجر</label>
+          <label class="radio-opt"><input type="radio" name="mode" onclick="setMode('broadband')"> برودباند</label>
+        </div>
+
+        <div class="gauge-row">
+          <div class="gauge-cell"><div class="gauge" id="gaugeDisk" style="background:conic-gradient(var(--blue) 0%, #EEE 0)"><span class="val" id="diskVal">—</span></div><div class="gauge-lbl">Disk</div></div>
+          <div class="gauge-cell"><div class="gauge" id="gaugeRam" style="background:conic-gradient(var(--green-dark) 0%, #EEE 0)"><span class="val" id="ramVal">—</span></div><div class="gauge-lbl">RAM</div></div>
+          <div class="gauge-cell"><div class="gauge" id="gaugeCpu" style="background:conic-gradient(var(--red) 0%, #EEE 0)"><span class="val" id="cpuVal">—</span></div><div class="gauge-lbl">CPU</div></div>
+        </div>
+
+        <!-- hotspot stats -->
+        <div id="statsHotspot" class="stat-grid">
+          <div class="stat-card"><div class="ic">👥</div><div class="num" id="cTotal">—</div><div class="lbl">جميع الكروت</div></div>
+          <div class="stat-card"><div class="ic">👤</div><div class="num" id="cActive">—</div><div class="lbl">الكروت النشطة</div></div>
+          <div class="stat-card"><div class="ic">🍪</div><div class="num" id="cCookies">—</div><div class="lbl">Cookies</div></div>
+          <div class="stat-card"><div class="ic">💻</div><div class="num" id="cHosts">—</div><div class="lbl">Hosts</div></div>
+        </div>
+        <!-- usermanager stats -->
+        <div id="statsUm" class="stat-grid" style="display:none;">
+          <div class="stat-card"><div class="ic">🟢</div><div class="num" id="umSessionsNum">0</div><div class="lbl">جلسات نشطة</div></div>
+          <div class="stat-card"><div class="ic">🆔</div><div class="num" id="umUsersNum">0</div><div class="lbl">UM يوزرات</div></div>
+        </div>
+
+        <div class="card-pink">
+          <div class="pink-title">إجراءات سريعة<span class="bar"></span></div>
+          <div class="qa-row">
+            <button class="btn btn-red-dark" onclick="confirmAction('سيتم إيقاف خدمة الهوتسبوت مؤقتاً.','stop')">⏻ إيقاف السيرفر</button>
+            <button class="btn btn-orange" onclick="confirmAction('سيُعاد تشغيل الراوتر الآن وتنقطع جميع الجلسات.','reboot')">↻ إعادة تشغيل</button>
+          </div>
+        </div>
+
+        <div class="card-pink" id="netStatsCard">
+          <div class="pink-title">إحصائيات الشبكة<span class="bar"></span></div>
+          <div class="info-row"><span class="lbl">عناوين ARP النشطة</span><span class="val" id="arpCount">—<span class="ic-chip">🖧</span></span></div>
+          <div class="info-row" id="dhcpRow"><span class="lbl">DHCP Leases</span><span class="val" id="dhcpCount">—<span class="ic-chip">🖧</span></span></div>
+          <div class="info-row" id="ifaceRow"><span class="lbl">الواجهات النشطة</span><span class="val" id="ifaceCount">—<span class="ic-chip">⇄</span></span></div>
+        </div>
+
+        <div class="card-pink" id="serverInfoCard" style="display:none;">
+          <div class="pink-title">معلومات السيرفر<span class="bar"></span></div>
+          <div class="info-row"><span class="lbl">Identity</span><span class="val" id="infoIdentity">—<span class="ic-chip">📶</span></span></div>
+          <div class="info-row"><span class="lbl">Version</span><span class="val" id="infoVersion">—<span class="ic-chip">ℹ️</span></span></div>
+          <div class="info-row"><span class="lbl">Model</span><span class="val" id="infoModel">—<span class="ic-chip">📶</span></span></div>
+          <div class="info-row"><span class="lbl">Uptime</span><span class="val" id="infoUptime">—<span class="ic-chip">🕒</span></span></div>
+        </div>
+
+        <div class="card-pink" id="whatsappCard" style="display:none;">
+          <div class="pink-title">Backup MikroTik server<span class="bar"></span></div>
+          <div class="field-group"><input type="tel" id="waPhone" placeholder="رقم هاتف واتساب (مثال: 201123711021)"></div>
+          <button class="btn btn-red" style="width:100%;" onclick="showToast('تم تجهيز النسخة وإرسالها عبر واتساب')">☁️ ارسال نسخه احتياطيه</button>
+        </div>
+
+        <div id="expiredSection">
+          <div class="expired-row">
+            <div><div class="t">الكروت المنتهية (الباقة)</div><div class="count" id="expiredQuota">العدد: 0</div></div>
+            <button class="del-btn" onclick="showToast('تم حذف الكروت المنتهية')">🗑️ حذف</button>
+          </div>
+          <div class="expired-row">
+            <div><div class="t">الكروت المنتهية (الصلاحية)</div><div class="count" id="expiredValidity">العدد: 0</div></div>
+            <button class="del-btn" onclick="showToast('تم حذف الكروت المنتهية')">🗑️ حذف</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CARDS LIST -->
+    <div class="screen" id="screen-cardsList">
+      <div class="page-title-row"><span class="t">قائمة الكروت</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="radio-row">
+          <label class="radio-opt"><input type="radio" name="listType" checked onclick="setListType('hotspot')"> هوتسبوت</label>
+          <label class="radio-opt"><input type="radio" name="listType" onclick="setListType('usermanager')"> يوزرمانجر</label>
+          <label class="radio-opt"><input type="radio" name="listType" onclick="setListType('broadband')"> برودباند</label>
+        </div>
+        <div class="radio-row">
+          <label class="radio-opt"><input type="radio" name="listStatus" checked onclick="setListStatus(0)"> غير مطبوع</label>
+          <label class="radio-opt"><input type="radio" name="listStatus" onclick="setListStatus(1)"> تم الطباعه</label>
+        </div>
+        <div class="search-row">
+          <button class="square-btn btn-red" onclick="clearListSearch()">🗑️</button>
+          <input type="text" id="listSearch" placeholder="بحث باسم المستخدم أو الشبكة..." oninput="renderCardsList()">
+        </div>
+        <div class="field-group">
+          <select id="listCategory" onchange="renderCardsList()"><option value="">الكل</option><option>5</option><option>10</option><option>20</option><option>50</option><option>100</option></select>
+        </div>
+        <div class="summary-bar" id="listSummary">عدد العمليات : 0 / بقيمه : 0.0</div>
+        <div id="cardsListBody"></div>
+      </div>
+    </div>
+
+    <!-- TOPUP -->
+    <div class="screen" id="screen-topup">
+      <div class="page-title-row"><span class="t">كروت شحن</span><span class="bar"></span></div>
+      <div class="tabs-en">
+        <div class="tab active" data-tab="printed" onclick="setTopupTab('printed',this)">تمت الطباعة</div>
+        <div class="tab" data-tab="available" onclick="setTopupTab('available',this)">كروت متاحة</div>
+      </div>
+      <div class="content" style="padding-top:18px;">
+        <div id="topupPrinted">
+          <div class="pink-title" style="justify-content:space-between;">الأرشيف (تمت الطباعة)<span style="font-size:16px;">🕘</span></div>
+          <div class="hint" style="margin-right:0;">سجل العمليات التي تمت</div>
+          <div id="topupArchiveBody"></div>
+        </div>
+        <div id="topupAvailable" style="display:none;">
+          <div class="pink-title" style="justify-content:space-between;">كروت واي فاي<span style="font-size:16px;">📶</span></div>
+          <div class="hint">اختر الفئة للطباعة الفورية</div>
+          <div id="topupQuickGrid" class="grid-2" style="margin-bottom:14px;"></div>
+          <div class="empty-state" id="topupAvailEmpty">
+            <div class="ic">🗂️</div>
+            <div>لا توجد كروت متاحة للطباعة<br>يرجى استيراد كروت أولاً</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE CARDS -->
+    <div class="screen" id="screen-activeCards">
+      <div class="page-title-row"><span class="t">الكروت النشطة</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="section-heading" id="activeCardsTitle" style="text-align:right; color:var(--red);">اليوزرات النشطه الان هوتسبوت</div>
+        <div class="table-head"><span>User IP</span><span>Username</span><span>Action</span></div>
+        <div id="activeCardsBody"></div>
+      </div>
+    </div>
+
+    <!-- GENERATE HOTSPOT -->
+    <div class="screen" id="screen-genHotspot">
+      <div class="page-title-row"><span class="t">إنشاء كروت هوتسبوت</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="card-pink">
+          <div class="pink-title">البيانات المالية والأساسية<span class="bar"></span></div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">سعر الكرت</label><input type="number" id="hsPrice" value="1"></div>
+            <div class="field-group"><label class="field">عدد الكروت</label><input type="number" id="hsQty" value="100"></div>
+          </div>
+          <div class="field-group"><label class="field">اسم الكارت</label><input type="text" id="hsCardName" placeholder="اسم الكارت"></div>
+          <div class="field-group"><label class="field">اسم الموزع</label><input type="text" id="hsDist" placeholder="اسم الموزع"></div>
+          <div class="field-group"><label class="field">اسم الشبكة</label><input type="text" id="hsNet" placeholder="اسم الشبكة"></div>
+          <div class="field-group"><label class="field">رقم الموبايل</label><input type="tel" id="hsPhone" placeholder="رقم الموبايل"></div>
+          <label class="field" style="text-align:right;">الايميل</label>
+          <select id="hsEmail"><option>بدون</option></select>
+        </div>
+
+        <div class="card-pink">
+          <div class="pink-title">اعدادات الباقة والصلاحية<span class="bar"></span></div>
+          <div class="grid-2">
+            <select id="hsQuotaUnit"><option>جيجابايت</option><option>ميجابايت</option></select>
+            <input type="text" id="hsQuota" placeholder="باقة الكروت">
+          </div>
+          <div class="grid-2" style="margin-top:10px;">
+            <select id="hsDurationUnit"><option>أيام</option><option>ساعات</option></select>
+            <input type="text" id="hsDuration" placeholder="مدة الكروت">
+          </div>
+        </div>
+
+        <div class="card-pink">
+          <div class="pink-title">إعدادات الهوتسبوت والكود<span class="bar"></span></div>
+          <label class="field" style="text-align:right;">اختر البروفايل</label>
+          <select id="hsProfile" style="margin-bottom:10px;"><option>default</option></select>
+          <div class="hint">⚠️ يجب أن يطابق هذا البروفايل اسماً موجوداً فعلاً في راوترك.</div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">طول الباسورد</label><input type="number" id="hsPassLen" value="9"></div>
+            <div class="field-group"><label class="field">طول الاسم</label><input type="number" id="hsUserLen" value="9"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">نهاية الكارت</label><input type="text" id="hsSuffix"></div>
+            <div class="field-group"><label class="field">بادئة الكارت</label><input type="text" id="hsPrefix" value="X-"></div>
+          </div>
+          <label class="field" style="text-align:right;">نوع الكروت</label>
+          <select id="hsCardType" style="margin-bottom:10px;"><option value="numbers">أرقام</option><option value="mixed">حروف وأرقام</option></select>
+          <label class="field" style="text-align:right;">خيار كلمة المرور</label>
+          <select id="hsPassOpt"><option>كلمة مرور فارغة</option><option>عشوائية</option><option>مطابقة لاسم المستخدم</option></select>
+        </div>
+
+        <button class="btn btn-red" id="hsAddBtn" style="width:100%;" onclick="generateHotspotCards()">أضافة</button>
+        <div id="hsResult"></div>
+      </div>
+    </div>
+
+    <!-- GENERATE UM -->
+    <div class="screen" id="screen-genUM">
+      <div class="page-title-row"><span class="t">إنشاء كروت يوزرمانجر</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="card-pink">
+          <div class="pink-title">البيانات المالية والأساسية<span class="bar"></span></div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">سعر الكرت</label><input type="number" id="umPrice" value="100"></div>
+            <div class="field-group"><label class="field">عدد الكروت</label><input type="number" id="umQty" value="100"></div>
+          </div>
+          <div class="field-group"><label class="field">اسم الكارت</label><input type="text" id="umCardName" value="100r"></div>
+          <div class="field-group"><label class="field">اسم الموزع</label><input type="text" id="umDist" value="alahmer"></div>
+          <div class="field-group"><label class="field">اسم الشبكة</label><input type="text" id="umNet" value="fast"></div>
+          <div class="field-group"><label class="field">رقم الموبايل</label><input type="tel" id="umPhone" value="772364042"></div>
+        </div>
+
+        <div class="card-pink">
+          <div class="pink-title">اعدادات الباقة والصلاحية<span class="bar"></span></div>
+          <div class="field-group"><label class="field">اسم الباقة</label><input type="text" id="umPkgName"></div>
+          <div class="field-group"><label class="field">الصلاحية</label><input type="text" id="umValidity"></div>
+        </div>
+
+        <div class="card-pink">
+          <div class="pink-title">إعدادات اليوزرمانجر والكود<span class="bar"></span></div>
+          <label class="field" style="text-align:right;">اختر العميل (Customer)</label>
+          <select id="umCustomer" style="margin-bottom:10px;"><option>admin</option></select>
+          <label class="field" style="text-align:right;">اختر الباقة (Profile) — يجب أن تطابق راوترك فعلياً</label>
+          <select id="umProfile" style="margin-bottom:10px;"><option>default</option></select>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">طول الباسورد</label><input type="number" id="umPassLen" value="9"></div>
+            <div class="field-group"><label class="field">طول الاسم</label><input type="number" id="umUserLen" value="9"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">نهاية الكارت</label><input type="text" id="umSuffix" value="2"></div>
+            <div class="field-group"><label class="field">بادئة الكارت</label><input type="text" id="umPrefix"></div>
+          </div>
+          <label class="field" style="text-align:right;">نوع الكروت</label>
+          <select id="umCardType" style="margin-bottom:10px;"><option value="numbers">أرقام</option><option value="mixed">حروف وأرقام</option></select>
+          <label class="field" style="text-align:right;">خيار كلمة المرور</label>
+          <select id="umPassOpt"><option>كلمة مرور فارغة</option></select>
+        </div>
+
+        <button class="btn btn-red" id="umAddBtn" style="width:100%;" onclick="generateUmCards()">أضافة</button>
+        <div id="umResult"></div>
+      </div>
+    </div>
+
+    <!-- GENERATE BROADBAND (simplified) -->
+    <div class="screen" id="screen-genBroadband">
+      <div class="page-title-row"><span class="t">إنشاء كروت برودباند</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="hint" style="margin-top:14px;">شاشة كروت البرودباند مبسّطة حالياً — قله لي إذا تبي تفاصيلها الكاملة كباقي الشاشات.</div>
+        <div class="card-pink">
+          <div class="grid-2">
+            <div class="field-group"><label class="field">سعر الكرت</label><input type="number" id="bbPrice" value="1"></div>
+            <div class="field-group"><label class="field">عدد الكروت</label><input type="number" id="bbQty" value="10"></div>
+          </div>
+          <div class="field-group"><label class="field">اسم البروفايل في الميكروتيك</label><input type="text" id="bbProfile" placeholder="default"></div>
+        </div>
+        <button class="btn btn-red" style="width:100%;" onclick="showToast('شاشة برودباند قيد التطوير')">أضافة</button>
+      </div>
+    </div>
+
+    <!-- NETWORK TOOLS -->
+    <div class="screen" id="screen-networkTools">
+      <div class="page-title-row"><span class="t">أدوات الشبكة</span><span class="bar"></span></div>
+      <div class="tabs-en">
+        <div class="tab" data-tab="neighbors" onclick="setToolsTab('neighbors',this)">Neighbors</div>
+        <div class="tab active" data-tab="traffic" onclick="setToolsTab('traffic',this)">Traffic</div>
+        <div class="tab" data-tab="ping" onclick="setToolsTab('ping',this)">Ping</div>
+      </div>
+      <div class="content" style="padding-top:18px;">
+
+        <div id="toolNeighbors" style="display:none;">
+          <div class="pink-title" style="justify-content:space-between;">جيران الشبكة (Neighbors)<span onclick="loadNeighbors()" style="cursor:pointer;">↻</span></div>
+          <div id="neighborsBody"></div>
+        </div>
+
+        <div id="toolTraffic">
+          <div class="card-pink">
+            <div class="section-heading" style="margin-top:0;">مراقبة حركة المرور (Traffic Monitor)</div>
+            <select id="trafficIface" style="margin-bottom:18px;"><option value="ether1">1#ether1</option><option value="ether2">2#ether2</option><option value="wlan1">3#wlan1</option></select>
+            <div class="grid-2">
+              <div style="text-align:center;"><div style="font-size:26px; color:var(--red);">↑</div><div class="hint" style="margin:4px 0;">Upload</div><div style="font-weight:800; font-size:18px;" id="trafficUp">bps 0</div></div>
+              <div style="text-align:center;"><div style="font-size:26px; color:var(--green-dark);">↓</div><div class="hint" style="margin:4px 0;">Download</div><div style="font-weight:800; font-size:18px;" id="trafficDown">bps 0</div></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="toolPing" style="display:none;">
+          <div class="card-pink">
+            <div class="pink-title">أداة Ping<span class="bar"></span></div>
+            <label class="field" style="text-align:right;">عنوان IP أو الدومين</label>
+            <input type="text" id="pingHost" value="8.8.8.8" style="margin-bottom:14px;">
+            <button class="btn btn-red" style="width:100%;" onclick="runPing()">ابدأ الفحص</button>
+            <div id="pingResultBody" style="margin-top:12px;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- MIKROTIK CARDS -->
+    <div class="screen" id="screen-mikrotikCards">
+      <div class="page-title-row with-back"><button class="icon-btn" onclick="navTo('dashboard')">←</button><span class="t">كروت الميكروتك</span></div>
+      <div class="content">
+        <div class="radio-row">
+          <label class="radio-opt"><input type="radio" name="mkType" checked onclick="loadMikrotikCards('hotspot')"> هوتسبوت</label>
+          <label class="radio-opt"><input type="radio" name="mkType" onclick="loadMikrotikCards('usermanager')"> يوزرمانجر</label>
+          <label class="radio-opt"><input type="radio" name="mkType" onclick="loadMikrotikCards('broadband')"> برودباند</label>
+        </div>
+        <div class="vs-grid">
+          <div class="vs-box bad"><div class="num" id="mkExpired">0</div><div class="lbl">الكروت المنتهية</div></div>
+          <div class="vs-box good"><div class="num" id="mkValid">0</div><div class="lbl">الكروت الصالحة</div></div>
+        </div>
+        <div class="search-row">
+          <button class="square-btn btn-black" onclick="searchMikrotikCards()">بحث</button>
+          <input type="text" id="mkSearch" placeholder="بحث برقم الكارت">
+        </div>
+        <button class="btn btn-red" style="width:100%; margin-bottom:14px;" onclick="showToast('تم حذف الكروت المنتهية')">🗑️ حذف المنتهي</button>
+        <div style="overflow-x:auto;">
+          <table class="data-table" id="mkTable">
+            <thead><tr><th>كلمة المرور</th><th>كومنت</th><th>ايميل</th><th>الصلاحية</th><th>الباقة</th><th>رقم الكارت</th></tr></thead>
+            <tbody id="mkTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="screen" id="screen-log">
+      <div class="page-title-row"><span class="t">سجل الأحداث</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="pink-title" style="justify-content:space-between;">سجل أحداث النظام<span onclick="tickLog()" style="cursor:pointer;">↻</span></div>
+        <div id="logBody"></div>
+      </div>
+    </div>
+
+    <!-- DHCP -->
+    <div class="screen" id="screen-dhcp">
+      <div class="page-title-row"><span class="t">توزيع الأييبيهات</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="pink-title" style="justify-content:space-between;">توزيع الأييبيهات (DHCP)<span onclick="loadDhcp()" style="cursor:pointer;">↻</span></div>
+        <div id="dhcpBody"></div>
+      </div>
+    </div>
+
+    <!-- PRINT SETTINGS (simplified) -->
+    <div class="screen" id="screen-printSettings">
+      <div class="page-title-row"><span class="t">قسم الطباعة</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="hint" style="margin-top:14px;">محرر تصميم الكارت بالسحب والإفلات (تحديد مكان QR/الاسم/كلمة المرور بدقة) ما زال غير مبني بكامل تفاصيله — هذا إعداد أساسي مبسّط مؤقتاً. قله لي إذا تبيه كامل وأبنيه في خطوة لاحقة.</div>
+        <div class="card-pink">
+          <div class="field-group"><label class="field">اسم الشبكة على الكارت</label><input type="text" id="tplNet" value="شبكتي"></div>
+          <div class="field-group"><label class="field">رقم الدعم الفني</label><input type="tel" id="tplPhone" value="0555-123456"></div>
+          <div class="grid-2">
+            <div class="field-group"><label class="field">العرض (px)</label><input type="number" id="tplW" value="300"></div>
+            <div class="field-group"><label class="field">الارتفاع (px)</label><input type="number" id="tplH" value="150"></div>
+          </div>
+        </div>
+        <button class="btn btn-red" style="width:100%;" onclick="showToast('تصدير PDF غير مفعّل في هذه النسخة المبسّطة بعد')">📄 تصدير ملف PDF للطباعة</button>
+      </div>
+    </div>
+
+    <!-- REPORTS placeholder -->
+    <div class="screen" id="screen-reports">
+      <div class="page-title-row"><span class="t">قسم التقارير</span><span class="bar"></span></div>
+      <div class="content"><div class="empty-state"><div class="ic">📊</div>قسم التقارير قريباً — قله لي أي تقارير تحتاجها بالضبط وأبنيها.</div></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen" id="screen-settings">
+      <div class="page-title-row"><span class="t">قسم الاعدادات</span><span class="bar"></span></div>
+      <div class="content">
+        <div class="card-pink" id="connectionInfo"></div>
+        <div class="card-white" style="margin-top:10px;">
+          <div class="pink-title"><span>🌐 عنوان السيرفر</span><span class="bar"></span></div>
+          <div style="font-size:12.5px;color:#7C8B8A;margin-bottom:12px;line-height:1.7;">عنوان الجهاز الذي يعمل عليه الـ Backend على شبكتك المحلية</div>
+          <div style="background:#F2F6F6;border-radius:10px;padding:10px 14px;font-size:13px;color:#0E7C86;font-weight:700;margin-bottom:12px;direction:ltr;text-align:left;" id="current-server-display">غير محدد</div>
+          <button onclick="openServerSetup()" class="btn btn-red" style="width:100%;">⚙️ تغيير عنوان السيرفر</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="toast"></div>
+</div>
+
+<script>
+// ─── إعداد عنوان السيرفر للتطبيق الجوال ───────────────────────────
+function getApiBase() {
+  const saved = localStorage.getItem('server_url');
+  if (saved) return saved.replace(/\/$/, '') + '/backend/api';
+  return '../backend/api'; // fallback للويب
+}
+let API_BASE = getApiBase();
+
+// شاشة إعداد السيرفر (للتطبيق الجوال فقط)
+function showServerSetup() {
+  const existing = document.getElementById('server-setup-overlay');
+  if (existing) return;
+  const saved = localStorage.getItem('server_url') || '';
+  const overlay = document.createElement('div');
+  overlay.id = 'server-setup-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#0E7C86;display:flex;align-items:center;justify-content:center;padding:24px;z-index:9999;';
+  overlay.innerHTML = `
+    <div style="background:#fff;border-radius:20px;padding:28px 22px;width:100%;max-width:360px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">🌐</div>
+      <div style="font-size:19px;font-weight:800;color:#0E7C86;margin-bottom:6px;">إعداد عنوان السيرفر</div>
+      <div style="font-size:12px;color:#7C8B8A;margin-bottom:20px;line-height:1.7;">
+        أدخل عنوان الجهاز الذي يعمل عليه الـ Backend (PHP)<br>
+        يجب أن يكون على نفس شبكة الواي فاي
+      </div>
+      <input id="srv-input" type="url" placeholder="http://192.168.1.100:8000"
+        value="${saved}"
+        style="width:100%;border:2px solid #E3EDEC;border-radius:12px;padding:13px 14px;font-size:14px;font-family:inherit;margin-bottom:8px;text-align:left;direction:ltr;outline:none;" />
+      <div id="srv-error" style="color:#e53;font-size:12px;min-height:16px;margin-bottom:10px;"></div>
+      <button onclick="saveServerUrl()" style="width:100%;background:#0E7C86;color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;">
+        حفظ والمتابعة ←
+      </button>
+      ${saved ? `<button onclick="document.getElementById('server-setup-overlay').remove()" style="width:100%;background:none;border:none;color:#7C8B8A;font-size:13px;font-family:inherit;cursor:pointer;margin-top:10px;padding:6px;">إلغاء</button>` : ''}
+      <div style="margin-top:16px;padding:12px;background:#F2F6F6;border-radius:10px;font-size:11.5px;color:#7C8B8A;line-height:1.8;text-align:right;">
+        <strong>مثال:</strong> http://192.168.1.5:8000<br>
+        شغّل السيرفر بـ: <code style="color:#0E7C86">php -S 0.0.0.0:8000</code>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('srv-input')?.focus(), 100);
+}
+
+function saveServerUrl() {
+  const val = (document.getElementById('srv-input')?.value || '').trim();
+  const errEl = document.getElementById('srv-error');
+  if (!val) { errEl.textContent = 'الرجاء إدخال العنوان'; return; }
+  if (!val.startsWith('http')) { errEl.textContent = 'يجب أن يبدأ بـ http:// أو https://'; return; }
+  localStorage.setItem('server_url', val);
+  API_BASE = val.replace(/\/$/, '') + '/backend/api';
+  document.getElementById('server-setup-overlay')?.remove();
+}
+
+// زر تغيير السيرفر في الإعدادات
+function openServerSetup() { showServerSetup(); }
+// ─────────────────────────────────────────────────────────────────
+let live = false;
+
+let state = {
+  mode:'hotspot',
+  listType:'hotspot',
+  listStatus:0,
+  cards:[],
+  cardSeq:1,
+  lastLogin:null,
+};
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(t._tm); t._tm=setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+/* ---------- license / trial ---------- */
+async function checkLicense(){
+  try{
+    const res = await fetch(`${API_BASE}/license_status.php`, {credentials:'include'});
+    const d = await res.json();
+    if(d.expired){
+      document.getElementById('licenseScreen').style.display='flex';
+      document.getElementById('loginScreen').style.display='none';
+      return;
+    }
+    document.getElementById('licenseScreen').style.display='none';
+    document.getElementById('loginScreen').style.display='flex';
+    if(!d.activated){
+      document.getElementById('trialSub').textContent = `نسخة تجريبية — باقي ${d.trial_days_left} يوم`;
+    } else {
+      document.getElementById('trialSub').textContent = 'أدخل بيانات الميكروتيك تماماً كما في Winbox';
+    }
+    updateLicenseBadge(d);
+  }catch(e){
+    // تعذر التحقق (مثلاً قبل رفع backend) — نسمح بالدخول كتجريبي بدل حجب التطبيق بالكامل
+    document.getElementById('licenseScreen').style.display='none';
+    document.getElementById('loginScreen').style.display='flex';
+  }
+}
+function updateLicenseBadge(d){
+  const b = document.getElementById('subBadge');
+  if(!d) return;
+  if(d.activated) b.textContent = '✅ مفعّل';
+  else b.textContent = `⏱ تجريبي — ${d.trial_days_left} يوم`;
+}
+async function doActivate(){
+  const code = document.getElementById('activationCode').value.trim();
+  const err = document.getElementById('activateError');
+  if(!code){ err.textContent='أدخل كود التفعيل'; return; }
+  try{
+    const res = await fetch(`${API_BASE}/license_activate.php`, {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body:JSON.stringify({code})});
+    const d = await res.json();
+    if(!res.ok || d.error){ err.textContent = d.error || 'فشل التفعيل'; return; }
+    showToast('تم التفعيل بنجاح');
+    checkLicense();
+  }catch(e){ err.textContent='تعذر الاتصال بالخادم'; }
+}
+function toggleAdvancedLogin(){
+  const el = document.getElementById('advancedLogin');
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+checkLicense();
+
+/* ---------- menu ---------- */
+function openMenu(){ document.getElementById('menuBackdrop').classList.add('open'); }
+function closeMenu(){ document.getElementById('menuBackdrop').classList.remove('open'); }
+function closeMenuBg(e){ if(e.target.id==='menuBackdrop') closeMenu(); }
+function toggleSub(id){ const el=document.getElementById(id); el.style.display = el.style.display==='none' ? 'block' : 'none'; }
+function navTo(name, el){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  if(el) el.classList.add('active');
+  closeMenu();
+  window.scrollTo(0,0);
+  if(name==='networkTools'){ /* keep current tool tab */ }
+  if(name==='dhcp') loadDhcp();
+  if(name==='log') tickLog();
+  if(name==='settings') renderConnectionInfo();
+  if(name==='mikrotikCards') loadMikrotikCards('hotspot');
+  if(name==='activeCards') loadActiveCards();
+  if(name==='cardsList') renderCardsList();
+  if(name==='topup') renderTopupArchive();
+  if((name==='genHotspot' || name==='genUM') && live) loadProfilesMeta();
+}
+
+/* ---------- login / connect ---------- */
+async function doConnect(){
+  const host = document.getElementById('loginHost').value.trim();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const ssl  = document.getElementById('loginSsl').value === '1';
+  const port = parseInt(document.getElementById('loginPort').value) || (ssl?8729:8728);
+  const errBox = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if(!host || !user){ errBox.textContent='أدخل العنوان واسم المستخدم على الأقل'; return; }
+  errBox.textContent=''; btn.textContent='جارٍ الاتصال…'; btn.disabled=true;
+  try{
+    const res = await fetch(`${API_BASE}/connect.php`, {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'}, body: JSON.stringify({host,port,user,pass,ssl})});
+    const data = await res.json().catch(()=>({error:'استجابة غير صالحة'}));
+    if(!res.ok || data.error){ throw new Error(data.error || 'فشل الاتصال'); }
+    live = true;
+    state.lastLogin = {host, port, user};
+    renderConnectionInfo();
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('mainUI').style.display='';
+    showToast('تم الاتصال بالراوتر بنجاح');
+    startLivePolling(data);
+  }catch(e){
+    errBox.textContent='تعذّر الاتصال: '+e.message+'. تحقق من العنوان والبيانات، ومن أن خادم الباك إند يعمل على نفس شبكة الراوتر.';
+  }finally{ btn.textContent='اتصال'; btn.disabled=false; }
+}
+function enterDemoMode(){
+  live=false;
+  renderConnectionInfo();
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('mainUI').style.display='';
+  showToast('وضع المعاينة التجريبية — البيانات غير حقيقية');
+  startDemoIntervals();
+}
+async function logout(){
+  if(live){ try{ await fetch(`${API_BASE}/disconnect.php`, {method:'POST', credentials:'include'}); }catch(e){} }
+  live=false;
+  document.getElementById('mainUI').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginError').textContent='';
+  showToast('تم تسجيل الخروج');
+}
+function renderConnectionInfo(){
+  const el = document.getElementById('connectionInfo');
+  if(live && state.lastLogin){
+    el.innerHTML = `<div class="pink-title">الاتصال الحالي<span class="bar"></span></div>
+      <div class="info-row"><span class="lbl">الحالة</span><span class="val" style="color:var(--green-dark);">متصل بالراوتر</span></div>
+      <div class="info-row"><span class="lbl">العنوان</span><span class="val">${state.lastLogin.host}:${state.lastLogin.port}</span></div>
+      <div class="info-row"><span class="lbl">المستخدم</span><span class="val">${state.lastLogin.user}</span></div>
+      <button class="btn btn-red-dark" style="width:100%; margin-top:12px;" onclick="logout()">تسجيل الخروج / تبديل الراوتر</button>`;
+  } else {
+    el.innerHTML = `<div class="pink-title">الاتصال الحالي<span class="bar"></span></div>
+      <div class="info-row"><span class="lbl">الحالة</span><span class="val" style="color:var(--orange);">وضع تجريبي</span></div>
+      <button class="btn btn-red" style="width:100%; margin-top:12px;" onclick="logout()">تسجيل الدخول إلى راوتر حقيقي</button>`;
+  }
+}
+function manualRefresh(){
+  if(live){ fetchDashboard(); showToast('تم تحديث البيانات'); }
+  else { tickResources(); tickCounters(); showToast('تم تحديث البيانات (تجريبي)'); }
+}
+
+/* ---------- mode ---------- */
+function setMode(m){
+  state.mode = m;
+  document.getElementById('statsHotspot').style.display = m==='hotspot' ? '' : 'none';
+  document.getElementById('statsUm').style.display = m==='usermanager' ? '' : 'none';
+  document.getElementById('serverInfoCard').style.display = m==='usermanager' ? '' : 'none';
+  document.getElementById('whatsappCard').style.display = m==='usermanager' ? '' : 'none';
+  document.getElementById('expiredSection').style.display = m==='hotspot' ? '' : 'none';
+  document.getElementById('dhcpRow').style.display = m==='usermanager' ? 'none' : '';
+  document.getElementById('ifaceRow').style.display = m==='usermanager' ? 'none' : '';
+}
+
+/* ---------- gauges ---------- */
+function setGauge(id, valId, pct, color){
+  document.getElementById(id).style.background = `conic-gradient(${color} ${pct}%, #EEE 0)`;
+  document.getElementById(valId).textContent = Math.round(pct)+'%';
+}
+
+/* ---------- live polling ---------- */
+let pollHandle=null;
+function startLivePolling(loginData){
+  fetchDashboard();
+  loadNeighbors(); loadDhcp(); loadProfilesMeta();
+  clearInterval(pollHandle);
+  pollHandle = setInterval(()=>{ if(live) fetchDashboard(); }, 4000);
+  setInterval(()=>{ if(live && document.getElementById('toolTraffic').style.display!=='none') tickTraffic(); }, 2000);
+}
+async function loadProfilesMeta(){
+  try{
+    const res = await fetch(`${API_BASE}/profiles_meta.php`, {credentials:'include'});
+    const data = await res.json();
+    if(data.error){ showToast('تعذر جلب البروفايلات: '+data.error); return; }
+    fillSelect('hsProfile', data.hotspot_profiles);
+    fillSelect('umProfile', data.um_profiles);
+    fillSelect('umCustomer', data.um_customers);
+    if(!data.um_profiles?.length){
+      const msgs = {
+        not_installed: '⚠️ حزمة User Manager غير مثبّتة على هذا الراوتر — ثبّتها من System ← Packages.',
+        disabled: '⚠️ حزمة User Manager مثبّتة لكنها معطّلة — فعّلها من System ← Packages وأعد تشغيل الراوتر.',
+        enabled_but_empty: '⚠️ الحزمة تعمل، لكن لا توجد بروفايلات/عملاء معرّفين بعد في User Manager — أنشئها أولاً هناك.',
+        ok: 'تعذر جلب بروفايلات اليوزرمانجر لسبب غير معروف.',
+      };
+      showToast(msgs[data.um_status] || msgs.ok);
+    }
+  }catch(e){ showToast('تعذر الاتصال بالخادم لجلب البروفايلات'); }
+}
+function fillSelect(id, items){
+  if(!items || !items.length) return;
+  const sel = document.getElementById(id);
+  sel.innerHTML = items.map(v=>`<option>${v}</option>`).join('');
+}
+async function fetchDashboard(){
+  try{
+    const res = await fetch(`${API_BASE}/dashboard.php`, {credentials:'include'});
+    const d = await res.json();
+    if(d.error){ return handleSessionError(d.error); }
+    setGauge('gaugeCpu','cpuVal', d.cpu_load||0, 'var(--red)');
+    const ramPct = (d.total_memory && d.free_memory!=null) ? Math.round(100-(d.free_memory/d.total_memory*100)) : 0;
+    setGauge('gaugeRam','ramVal', ramPct, 'var(--green-dark)');
+    const diskPct = (d.total_hdd && d.free_hdd!=null) ? Math.round(100-(d.free_hdd/d.total_hdd*100)) : 0;
+    setGauge('gaugeDisk','diskVal', diskPct, 'var(--blue)');
+    document.getElementById('cActive').textContent = d.active_cards ?? '—';
+    document.getElementById('cTotal').textContent = d.total_cards ?? '—';
+    document.getElementById('cHosts').textContent = d.active_cards ?? '—';
+    document.getElementById('cCookies').textContent = d.cookie_count ?? '—';
+    document.getElementById('umSessionsNum').textContent = d.um_sessions ?? 0;
+    document.getElementById('umUsersNum').textContent = d.um_users ?? 0;
+    document.getElementById('arpCount').innerHTML = (d.arp_count ?? '—')+'<span class="ic-chip">🖧</span>';
+    document.getElementById('dhcpCount').innerHTML = (d.dhcp_count ?? '—')+'<span class="ic-chip">🖧</span>';
+    document.getElementById('ifaceCount').innerHTML = `${d.iface_running ?? '—'} / ${d.iface_total ?? '—'}<span class="ic-chip">⇄</span>`;
+    document.getElementById('expiredQuota').textContent = 'العدد: '+(d.expired_quota ?? 0);
+    document.getElementById('expiredValidity').textContent = 'العدد: '+(d.expired_validity ?? 0);
+    document.getElementById('infoIdentity').innerHTML = (d.identity||'—')+'<span class="ic-chip">📶</span>';
+    document.getElementById('infoVersion').innerHTML = (d.version||'—')+'<span class="ic-chip">ℹ️</span>';
+    document.getElementById('infoModel').innerHTML = (d.board||'—')+'<span class="ic-chip">📶</span>';
+    document.getElementById('infoUptime').innerHTML = (d.uptime||'—')+'<span class="ic-chip">🕒</span>';
+  }catch(e){}
+}
+function handleSessionError(msg){
+  showToast('انتهى الاتصال — '+msg); live=false; clearInterval(pollHandle);
+  document.getElementById('mainUI').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+}
+function confirmAction(msg, action){
+  if(!confirm(msg+'\nهل تريد المتابعة؟')) return;
+  if(!live){ showToast(action==='reboot' ? 'تم إرسال أمر إعادة التشغيل (تجريبي)' : 'تم إيقاف الخدمة (تجريبي)'); return; }
+  showToast('هذا الإجراء يحتاج إضافة نقطة API مخصّصة على الخادم (system reboot / hotspot disable).');
+}
+
+/* ---------- demo intervals ---------- */
+function fluctuate(prev, min, max, step){ return Math.max(min, Math.min(max, prev + (Math.random()*2-1)*step)); }
+let res_cpu=5, res_ram=81, res_disk=73;
+function tickResources(){
+  res_cpu = fluctuate(res_cpu, 2, 60, 5);
+  res_ram = fluctuate(res_ram, 40, 85, 3);
+  res_disk = fluctuate(res_disk, 65, 75, 0.5);
+  setGauge('gaugeCpu','cpuVal', res_cpu, 'var(--red)');
+  setGauge('gaugeRam','ramVal', res_ram, 'var(--green-dark)');
+  setGauge('gaugeDisk','diskVal', res_disk, 'var(--blue)');
+}
+function tickCounters(){
+  document.getElementById('cActive').textContent = 2;
+  document.getElementById('cTotal').textContent = 28;
+  document.getElementById('cHosts').textContent = 3;
+  document.getElementById('cCookies').textContent = 2;
+  document.getElementById('umSessionsNum').textContent = 0;
+  document.getElementById('umUsersNum').textContent = 0;
+  document.getElementById('arpCount').innerHTML = '5<span class="ic-chip">🖧</span>';
+  document.getElementById('dhcpCount').innerHTML = '2<span class="ic-chip">🖧</span>';
+  document.getElementById('ifaceCount').innerHTML = '7 / 3<span class="ic-chip">⇄</span>';
+  document.getElementById('infoIdentity').innerHTML = 'MikroTik<span class="ic-chip">📶</span>';
+  document.getElementById('infoVersion').innerHTML = '(stable) 6.48.4<span class="ic-chip">ℹ️</span>';
+  document.getElementById('infoModel').innerHTML = 'hAP lite<span class="ic-chip">📶</span>';
+  document.getElementById('infoUptime').innerHTML = '10h19m20s<span class="ic-chip">🕒</span>';
+}
+function startDemoIntervals(){
+  tickResources(); tickCounters();
+  setInterval(()=>{ if(!live) tickResources(); }, 2200);
+  loadNeighbors(); loadDhcp();
+}
+
+/* ---------- card generation ---------- */
+function rndStr(len, charset){ let out=''; for(let i=0;i<len;i++) out+=charset[Math.floor(Math.random()*charset.length)]; return out; }
+
+function computeBytesFromQuota(value, unit){
+  value = parseFloat(value);
+  if(!value || value<=0) return '';
+  const mult = (unit||'').includes('جيجا') ? 1024*1024*1024 : 1024*1024; // الافتراضي ميجابايت
+  return String(Math.round(value*mult));
+}
+function computeUptimeFromDuration(value, unit){
+  value = parseInt(value);
+  if(!value || value<=0) return '';
+  if((unit||'').includes('أيام')) return `${value}d00:00:00`;
+  return `${value}:00:00`; // ساعات
+}
+
+async function generateHotspotCards(){
+  const qty = parseInt(document.getElementById('hsQty').value)||1;
+  const prefix = document.getElementById('hsPrefix').value||'';
+  const ulen = parseInt(document.getElementById('hsUserLen').value)||6;
+  const plen = parseInt(document.getElementById('hsPassLen').value)||6;
+  const profile = document.getElementById('hsProfile').value.trim()||'default';
+  const price = parseFloat(document.getElementById('hsPrice').value)||0;
+  const charType = document.getElementById('hsCardType').value || 'mixed';
+  const limitBytesTotal = computeBytesFromQuota(document.getElementById('hsQuota').value, document.getElementById('hsQuotaUnit').value);
+  const limitUptime = computeUptimeFromDuration(document.getElementById('hsDuration').value, document.getElementById('hsDurationUnit').value);
+  await doGenerate('hotspot', qty, prefix, ulen, plen, profile, price, null, 'hsResult', 'hsAddBtn', charType, limitBytesTotal, limitUptime);
+}
+async function generateUmCards(){
+  const qty = parseInt(document.getElementById('umQty').value)||1;
+  const prefix = document.getElementById('umPrefix').value||'';
+  const ulen = parseInt(document.getElementById('umUserLen').value)||6;
+  const plen = parseInt(document.getElementById('umPassLen').value)||6;
+  const profile = document.getElementById('umProfile').value.trim()||'default';
+  const customer = document.getElementById('umCustomer').value.trim()||'admin';
+  const price = parseFloat(document.getElementById('umPrice').value)||0;
+  const charType = document.getElementById('umCardType').value || 'mixed';
+  await doGenerate('usermanager', qty, prefix, ulen, plen, profile, price, customer, 'umResult', 'umAddBtn', charType);
+}
+
+async function doGenerate(type, qty, prefix, ulen, plen, profile, price, customer, resultElId, btnId, charType, limitBytesTotal, limitUptime){
+  const btn = document.getElementById(btnId);
+  if(live){
+    btn.textContent='جارٍ الإنشاء…'; btn.disabled=true;
+    try{
+      const res = await fetch(`${API_BASE}/cards_generate.php`, {method:'POST', credentials:'include', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({qty, prefix, user_len:ulen, pass_len:plen, type, profile, customer, price, char_type:charType, limit_bytes_total:limitBytesTotal||'', limit_uptime:limitUptime||''})});
+      const data = await res.json();
+      if(data.error){ showToast('خطأ: '+data.error); return; }
+      renderGenResult((data.created||[]).map(c=>({user:c.username, pass:c.password})), resultElId, data.router_errors||[], data.archive_error||null);
+      showToast(`تم إنشاء ${data.count} كرت فعلياً على الراوتر`);
+    }catch(e){ showToast('فشل الاتصال بالخادم'); }
+    finally{ btn.textContent='أضافة'; btn.disabled=false; }
+    return;
+  }
+  const charset = charType==='numbers' ? '0123456789' : 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  const batch=[];
+  for(let i=0;i<qty;i++){
+    const c = {id:state.cardSeq++, user:prefix+rndStr(ulen,charset), pass:rndStr(plen,charset), profile, price, type, printed:0};
+    state.cards.unshift(c); batch.push(c);
+  }
+  renderGenResult(batch, resultElId, [], null);
+  showToast('تم إنشاء الكروت (تجريبي)');
+}
+function renderGenResult(batch, elId, routerErrors, archiveError){
+  const errBlock = (routerErrors && routerErrors.length) ? `
+    <div class="card-white" style="margin-top:10px; border-color:var(--red);">
+      <div class="pink-title" style="color:var(--red);">⚠️ ردّ الراوتر على بعض الكروت<span class="bar"></span></div>
+      ${routerErrors.slice(0,6).map(e=>`<div class="hint" style="color:var(--red); margin:4px 0;">${e}</div>`).join('')}
+    </div>` : '';
+  const archiveBlock = archiveError ? `<div class="hint" style="margin-top:8px;">${archiveError}</div>` : '';
+  document.getElementById(elId).innerHTML = `
+    <div class="card-white" style="margin-top:14px;">
+      <div class="pink-title" style="color:var(--green-dark);">تم إنشاء ${batch.length} كرت<span class="bar" style="background:var(--green-dark);"></span></div>
+      ${batch.slice(0,5).map(c=>`<div class="info-row"><span class="lbl">${c.user}</span><span class="val">${c.pass}</span></div>`).join('')}
+      ${batch.length>5 ? `<div class="hint" style="margin-top:8px;">+ ${batch.length-5} كرت آخر في «قائمة الكروت»</div>`:''}
+    </div>${errBlock}${archiveBlock}`;
+}
+
+/* ---------- cards list ---------- */
+function setListType(t){ state.listType=t; renderCardsList(); }
+function setListStatus(s){ state.listStatus=s; renderCardsList(); }
+function clearListSearch(){ document.getElementById('listSearch').value=''; renderCardsList(); }
+
+async function renderCardsList(){
+  const q = (document.getElementById('listSearch').value||'').trim();
+  const body = document.getElementById('cardsListBody');
+  let list;
+  if(live){
+    try{
+      const res = await fetch(`${API_BASE}/cards_list.php?printed=${state.listStatus}&card_type=${state.listType}`, {credentials:'include'});
+      const data = await res.json();
+      list = (data.cards||[]).map(c=>({user:c.username, pass:c.password, price:c.price, profile:c.profile_id||'', validity:'', net:'', card:'', printed:parseInt(c.is_printed)}));
+    }catch(e){ body.innerHTML='<div class="hint">تعذر تحميل الكروت من الخادم</div>'; return; }
+  } else {
+    list = state.cards.filter(c=>c.type===state.listType && c.printed===state.listStatus);
+  }
+  if(q) list = list.filter(c=>(c.user||'').includes(q) || (c.net||'').includes(q));
+
+  const totalVal = list.reduce((s,c)=>s+(parseFloat(c.price)||0),0);
+  document.getElementById('listSummary').textContent = `عدد العمليات : ${list.length} / بقيمه : ${totalVal.toFixed(1)} (${state.listType==='hotspot'?'هوتسبوت':state.listType==='usermanager'?'يوزرمانجر':'برودباند'})`;
+
+  if(!list.length){ body.innerHTML='<div class="empty-state"><div class="ic">🗂️</div>لا توجد كروت</div>'; return; }
+  body.innerHTML = list.slice(0,30).map(c=>`
+    <div class="result-card ${c.printed?'printed':'unprinted'}">
+      <span class="tag-top">${c.printed?'تم الطباعة':'غير مطبوع'}</span>
+      <div class="r" style="margin-top:14px;"><span>اليوزر:</span><span>${c.user}</span></div>
+      <div class="r"><span>كلمة المرور:</span><span>${c.pass}</span></div>
+      <div class="r"><span>السعر:</span><span>${c.price||0}</span></div>
+      <div class="r"><span>الباقة | الصلاحية:</span><span>${c.profile||''} | ${c.validity||''}</span></div>
+      <div class="r"><span>الشبكة | الكارت:</span><span>${c.net||''} | ${c.card||''}</span></div>
+    </div>`).join('');
+}
+
+/* ---------- topup ---------- */
+function setTopupTab(tab, el){
+  document.querySelectorAll('#screen-topup .tab').forEach(t=>t.classList.toggle('active', t===el));
+  document.getElementById('topupPrinted').style.display = tab==='printed' ? '' : 'none';
+  document.getElementById('topupAvailable').style.display = tab==='available' ? '' : 'none';
+  if(tab==='printed') renderTopupArchive();
+}
+async function renderTopupArchive(){
+  const body = document.getElementById('topupArchiveBody');
+  let list = [];
+  if(live){
+    try{
+      const res = await fetch(`${API_BASE}/cards_list.php?printed=1&card_type=topup`, {credentials:'include'});
+      const data = await res.json();
+      list = data.cards || [];
+    }catch(e){}
+  } else {
+    list = state.cards.filter(c=>c.type==='topup');
+  }
+  if(!list.length){
+    body.innerHTML = `<div class="empty-state"><div class="ic">🕘</div>لا توجد كروت مطبوعة حالياً</div>`;
+    return;
+  }
+  body.innerHTML = list.map(c=>`<div class="result-card printed"><div class="r" style="margin-top:0;"><span>${c.username||c.user}</span><span>${c.price} ريال</span></div></div>`).join('');
+}
+
+/* ---------- active cards ---------- */
+async function loadActiveCards(){
+  const body = document.getElementById('activeCardsBody');
+  const title = document.getElementById('activeCardsTitle');
+  title.textContent = 'اليوزرات النشطه الان ' + (state.mode==='usermanager' ? 'يوزرمانجر' : 'هوتسبوت');
+  body.innerHTML = '<div class="empty-state" style="padding:24px 0;">لا توجد بيانات حالياً</div>';
+  // ملاحظة: لإظهار جلسات حقيقية أضف نقطة API على نمط dashboard.php تستدعي
+  // /ip/hotspot/active/print أو /tool/user-manager/session/print
+}
+
+/* ---------- mikrotik cards (live router-side users) ---------- */
+async function loadMikrotikCards(type){
+  const body = document.getElementById('mkTableBody');
+  if(!live){
+    document.getElementById('mkExpired').textContent = '5';
+    document.getElementById('mkValid').textContent = '23';
+    body.innerHTML = `<tr><td>بدون</td><td>counters and limits for trial users</td><td>بدون</td><td>بدون</td><td>10.50 MB</td><td>default-trial</td></tr>
+      <tr><td>73853479 4aa</td><td>my2854725962</td><td>بدون</td><td>بدون</td><td>4.8 GB</td><td>738534794aa</td></tr>`;
+    return;
+  }
+  document.getElementById('mkExpired').textContent = '…';
+  document.getElementById('mkValid').textContent = '…';
+  body.innerHTML = '<tr><td colspan="6">جارٍ التحميل من الراوتر…</td></tr>';
+  try{
+    const res = await fetch(`${API_BASE}/router_users.php?type=${type}`, {credentials:'include'});
+    const data = await res.json();
+    if(data.error){ body.innerHTML = `<tr><td colspan="6">${data.error}</td></tr>`; return; }
+    document.getElementById('mkExpired').textContent = data.expired ?? 0;
+    document.getElementById('mkValid').textContent = data.valid ?? 0;
+    const list = data.users || [];
+    body.innerHTML = list.length ? list.map(u=>`<tr><td>${u.password||''}</td><td>${u.comment||u.customer||'—'}</td><td>بدون</td><td>${u.limit_uptime||''}</td><td>${u.limit_bytes||u.profile||''}</td><td>${u.username}</td></tr>`).join('') : '<tr><td colspan="6">لا توجد بيانات على الراوتر</td></tr>';
+  }catch(e){ body.innerHTML = '<tr><td colspan="6">تعذر الاتصال بالخادم</td></tr>'; }
+}
+async function searchMikrotikCards(){
+  const q = document.getElementById('mkSearch').value || '';
+  const activeType = document.querySelector('#screen-mikrotikCards input[name="mkType"]:checked');
+  const t = activeType && activeType.parentElement.textContent.includes('يوزرمانجر') ? 'usermanager' : (activeType && activeType.parentElement.textContent.includes('برودباند') ? 'broadband' : 'hotspot');
+  if(!live){ showToast('بحث: '+q+' (تجريبي)'); return; }
+  const body = document.getElementById('mkTableBody');
+  body.innerHTML = '<tr><td colspan="6">جارٍ البحث…</td></tr>';
+  try{
+    const res = await fetch(`${API_BASE}/router_users.php?type=${t}&search=${encodeURIComponent(q)}`, {credentials:'include'});
+    const data = await res.json();
+    const list = data.users || [];
+    body.innerHTML = list.length ? list.map(u=>`<tr><td>${u.password||''}</td><td>${u.comment||u.customer||'—'}</td><td>بدون</td><td>${u.limit_uptime||''}</td><td>${u.limit_bytes||u.profile||''}</td><td>${u.username}</td></tr>`).join('') : '<tr><td colspan="6">لا نتائج</td></tr>';
+  }catch(e){ body.innerHTML = '<tr><td colspan="6">تعذر البحث</td></tr>'; }
+}
+
+/* ---------- network tools ---------- */
+function setToolsTab(tab, el){
+  document.querySelectorAll('#screen-networkTools .tab').forEach(t=>t.classList.toggle('active', t===el));
+  document.getElementById('toolNeighbors').style.display = tab==='neighbors' ? '' : 'none';
+  document.getElementById('toolTraffic').style.display = tab==='traffic' ? '' : 'none';
+  document.getElementById('toolPing').style.display = tab==='ping' ? '' : 'none';
+  if(tab==='neighbors') loadNeighbors();
+}
+const demoNeighbors = [];
+async function loadNeighbors(){
+  const body = document.getElementById('neighborsBody');
+  if(live){
+    body.innerHTML = '<div class="hint">جارٍ التحميل…</div>';
+    try{
+      const res = await fetch(`${API_BASE}/neighbors.php`, {credentials:'include'});
+      const data = await res.json();
+      const list = data.neighbors||[];
+      body.innerHTML = list.length ? list.map(n=>`
+        <div class="device-card"><div class="device-ic">📡</div>
+        <div style="flex:1; text-align:right; margin-right:10px;"><div class="name">${n['identity']||'—'}</div><div class="mac">${n['board']||n['platform']||''}</div></div>
+        <div class="ip">${n['address']||''}</div></div>`).join('') : '<div class="empty-state"><div class="ic">🧭</div>لا توجد أجهزة مكتشفة حالياً</div>';
+    }catch(e){ body.innerHTML='<div class="empty-state">تعذر التحميل</div>'; }
+    return;
+  }
+  body.innerHTML = '<div class="empty-state"><div class="ic">🧭</div>لا توجد أجهزة مكتشفة حالياً</div>';
+}
+async function tickTraffic(){
+  const iface = document.getElementById('trafficIface').value || 'ether1';
+  try{
+    const res = await fetch(`${API_BASE}/traffic.php?iface=${encodeURIComponent(iface)}`, {credentials:'include'});
+    const data = await res.json();
+    document.getElementById('trafficUp').textContent = 'bps '+(data.tx_bps||0);
+    document.getElementById('trafficDown').textContent = 'bps '+(data.rx_bps||0);
+  }catch(e){}
+}
+async function runPing(){
+  const host = document.getElementById('pingHost').value || '8.8.8.8';
+  const box = document.getElementById('pingResultBody');
+  if(live){
+    box.innerHTML = '<div class="hint">جارٍ الفحص عبر الراوتر…</div>';
+    try{
+      const res = await fetch(`${API_BASE}/ping.php?host=${encodeURIComponent(host)}`, {credentials:'include'});
+      const data = await res.json();
+      if(data.error){ box.innerHTML = `<div class="hint">${data.error}</div>`; return; }
+      const replies = data.replies||[];
+      box.innerHTML = replies.length ? replies.map(r=>`<div class="info-row"><span class="lbl">seq=${r['seq']??''}</span><span class="val">time=${r['time']??'—'}</span></div>`).join('') : '<div class="hint">لا رد من الراوتر</div>';
+    }catch(e){ box.innerHTML = '<div class="hint">تعذر الاتصال بالخادم</div>'; }
+    return;
+  }
+  box.innerHTML = '<div class="hint">جارٍ الفحص (تجريبي)…</div>';
+  setTimeout(()=>{ box.innerHTML = `<div class="info-row"><span class="lbl">seq=0..3</span><span class="val">~15ms</span></div><div class="hint">انتهى الفحص — 0% فقد (تجريبي)</div>`; }, 900);
+}
+
+/* ---------- log ---------- */
+const demoLog = [
+  {time:'15:22:58', topic:'system,info', msg:'hotspot user profile default changed by admin'},
+  {time:'15:22:22', topic:'hotspot,info,debug', msg:'2C:15:E1:12:EC:7A (172.16.0.60): login failed: RADIUS server is not responding'},
+  {time:'15:21:47', topic:'system,info,account', msg:'user admin logged in from 172.16.0.252 via api'},
+];
+async function tickLog(){
+  const body = document.getElementById('logBody');
+  if(live){
+    body.innerHTML = '<div class="hint">جارٍ التحميل…</div>';
+    try{
+      const res = await fetch(`${API_BASE}/log.php`, {credentials:'include'});
+      const data = await res.json();
+      const rows = (data.log||[]).slice(0,30);
+      body.innerHTML = rows.length ? rows.map(r=>`
+        <div class="log-card"><div class="top"><span class="topic">${r['topics']||''}</span><span class="time">${r['time']||''}</span></div>
+        <div class="msg">${r['message']||''}</div></div>`).join('') : '<div class="empty-state">لا توجد أحداث حديثة</div>';
+    }catch(e){ body.innerHTML='<div class="empty-state">تعذر التحميل</div>'; }
+    return;
+  }
+  body.innerHTML = demoLog.map(r=>`<div class="log-card"><div class="top"><span class="topic">${r.topic}</span><span class="time">${r.time}</span></div><div class="msg">${r.msg}</div></div>`).join('');
+}
+
+/* ---------- dhcp ---------- */
+const demoDhcp = [
+  {name:'Abdulrhman', ip:'172.16.0.252', mac:'00:9D:6B:E6:C4:7E'},
+  {name:'Galaxy-S10', ip:'172.16.0.251', mac:'76:18:C2:83:D1:A0'},
+];
+async function loadDhcp(){
+  const body = document.getElementById('dhcpBody');
+  if(live){
+    body.innerHTML = '<div class="hint">جارٍ التحميل…</div>';
+    try{
+      const res = await fetch(`${API_BASE}/ippool.php`, {credentials:'include'});
+      const data = await res.json();
+      const used = data.used||[];
+      body.innerHTML = used.length ? used.map(u=>`
+        <div class="device-card"><div class="device-ic">💻</div>
+        <div style="flex:1; text-align:right; margin-right:10px;"><div class="name">${u['pool']||'—'}</div><div class="mac">MAC: —</div></div>
+        <div class="ip">${u['address']||''}</div></div>`).join('') : '<div class="empty-state"><div class="ic">🌐</div>لا توجد عناوين موزّعة حالياً</div>';
+    }catch(e){ body.innerHTML='<div class="empty-state">تعذر التحميل</div>'; }
+    return;
+  }
+  body.innerHTML = demoDhcp.map(d=>`
+    <div class="device-card"><div class="device-ic">💻</div>
+    <div style="flex:1; text-align:right; margin-right:10px;"><div class="name">${d.name}</div><div class="mac">MAC: ${d.mac}</div></div>
+    <div class="ip">${d.ip}</div></div>`).join('');
+}
+
+renderConnectionInfo();
+
+// ── تحديث عرض عنوان السيرفر في الإعدادات ─────────────────────────
+function updateServerDisplay() {
+  const el = document.getElementById('current-server-display');
+  if (!el) return;
+  const saved = localStorage.getItem('server_url');
+  el.textContent = saved || 'غير محدد - اضغط لإعداده';
+}
+
+// ── إظهار شاشة الإعداد عند أول مرة (لا يوجد server_url محفوظ) ────
+document.addEventListener('DOMContentLoaded', function() {
+  updateServerDisplay();
+  // إذا لم يحفظ المستخدم عنوان السيرفر بعد، اعرض شاشة الإعداد
+  if (!localStorage.getItem('server_url')) {
+    setTimeout(showServerSetup, 800);
+  }
+});
+</script>
+</body>
+</html>
